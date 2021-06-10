@@ -73,7 +73,7 @@ public abstract class AbstractWorkbookPopulator implements WorkbookPopulator {
             } else if (value.matches("\\d{1,2}/\\d{1,2}/\\d{4}")) {
                 formatinDB = new SimpleDateFormat("dd/MM/yyyy");
             } else if (value.matches("\\d{1,2} \\w{3,12} \\d{4}")) {
-                formatinDB = new SimpleDateFormat("dd MMMM yyyy");
+                formatinDB = new SimpleDateFormat("yyyy-MM-dd");
             }
             Date date1 = formatinDB.parse(value);
             SimpleDateFormat expectedFormat = new SimpleDateFormat(dateFormat);

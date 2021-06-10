@@ -186,7 +186,7 @@ public class CenterIntegrationTest {
             map.put("officeId", "" + officeId);
             map.put("name", Utils.randomStringGenerator("Group_Name_", 5));
             map.put("externalId", Utils.randomStringGenerator("ID_", 7, "ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-            map.put("dateFormat", "dd MMMM yyyy");
+            map.put("dateFormat", "yyyy-MM-dd");
             map.put("locale", "en");
             map.put("active", "true");
             map.put("activationDate", "04 March 2011");

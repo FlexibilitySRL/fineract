@@ -48,6 +48,14 @@ public class CodeValueRepositoryWrapper {
         return this.repository.findById(id).orElseThrow(() -> new CodeValueNotFoundException(id));
     }
 
+    public CodeValue findOneByCodeWithNotFoundDetection(final String codeName) {
+        final CodeValue codeValue = this.repository.findByLabel(codeName);
+        if (codeValue == null) {
+            throw new CodeValueNotFoundException("", codeName);
+        }
+        return codeValue;
+    }
+
     public CodeValue findOneByCodeNameAndIdWithNotFoundDetection(final String codeName, final Long id) {
         final CodeValue codeValue = this.repository.findByCodeNameAndId(codeName, id);
         if (codeValue == null) {

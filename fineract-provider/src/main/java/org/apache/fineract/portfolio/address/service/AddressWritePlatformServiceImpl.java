@@ -22,6 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.codes.domain.CodeValueRepository;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
@@ -40,6 +41,7 @@ import org.apache.fineract.portfolio.client.domain.ClientAddressRepositoryWrappe
 import org.apache.fineract.portfolio.client.domain.ClientRepositoryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AddressWritePlatformServiceImpl implements AddressWritePlatformService {
@@ -77,14 +79,23 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
         this.context.authenticatedUser();
         this.fromApiJsonDeserializer.validateForCreate(command.json(), true);
 
-        if (command.longValueOfParameterNamed("stateProvinceId") != null) {
-            stateId = command.longValueOfParameterNamed("stateProvinceId");
-            stateIdobj = this.codeValueRepository.getOne(stateId);
+        if (command.stringValueOfParameterNamed("stateProvinceId") != null) {
+            String stateCode = command.stringValueOfParameterNamed("stateProvinceId");
+            if (NumberUtils.isParsable(stateCode)) {
+                stateId = Long.parseLong(stateCode);
+                stateIdobj = this.codeValueRepository.getOne(stateId);
+            } else {
+                stateIdobj = this.codeValueRepository.findByLabel(stateCode);
+            }
         }
-
-        if (command.longValueOfParameterNamed("countryId") != null) {
-            countryId = command.longValueOfParameterNamed("countryId");
-            countryIdObj = this.codeValueRepository.getOne(countryId);
+        if (command.stringValueOfParameterNamed("countryId") != null) {
+            String countryCode = command.stringValueOfParameterNamed("countryId");
+            if (NumberUtils.isParsable(countryCode)) {
+                countryId = Long.parseLong(countryCode);
+                countryIdObj = this.codeValueRepository.getOne(countryId);
+            } else {
+                countryIdObj = this.codeValueRepository.findByLabel(countryCode);
+            }
         }
 
         final CodeValue addressTypeIdObj = this.codeValueRepository.getOne(addressTypeId);
@@ -125,13 +136,23 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
                 this.fromApiJsonDeserializer.validateForCreate(jsonObject.toString(), true);
 
                 if (jsonObject.get("stateProvinceId") != null) {
-                    stateId = jsonObject.get("stateProvinceId").getAsLong();
-                    stateIdobj = this.codeValueRepository.getOne(stateId);
+                    String stateCode = jsonObject.get("stateProvinceId").getAsString();
+                    if (NumberUtils.isParsable(stateCode)) {
+                        stateId = Long.parseLong(stateCode);
+                        stateIdobj = this.codeValueRepository.getOne(stateId);
+                    } else {
+                        stateIdobj = this.codeValueRepository.findByLabel(stateCode);
+                    }
                 }
 
                 if (jsonObject.get("countryId") != null) {
-                    countryId = jsonObject.get("countryId").getAsLong();
-                    countryIdObj = this.codeValueRepository.getOne(countryId);
+                    String countryCode = jsonObject.get("countryId").getAsString();
+                    if (NumberUtils.isParsable(countryCode)) {
+                        countryId = Long.parseLong(countryCode);
+                        countryIdObj = this.codeValueRepository.getOne(countryId);
+                    } else {
+                        countryIdObj = this.codeValueRepository.findByLabel(countryCode);
+                    }
                 }
 
                 final long addressTypeId = jsonObject.get("addressTypeId").getAsLong();
@@ -168,9 +189,9 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
 
         long countryId;
 
-        CodeValue stateIdobj;
+        CodeValue stateIdobj = null;
 
-        CodeValue countryIdObj;
+        CodeValue countryIdObj = null;
 
         boolean is_address_update = false;
 
@@ -228,23 +249,31 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
             addobj.setCountyDistrict(countyDistrict);
         }
 
-        if (command.longValueOfParameterNamed("stateProvinceId") != null) {
-            if (command.longValueOfParameterNamed("stateProvinceId") != 0) {
+        if (command.stringValueOfParameterNamed("stateProvinceId") != null) {
+            String stateCode = command.stringValueOfParameterNamed("stateProvinceId");
+            if (NumberUtils.isParsable(stateCode)) {
                 is_address_update = true;
-                stateId = command.longValueOfParameterNamed("stateProvinceId");
+                stateId = Long.parseLong(stateCode);
                 stateIdobj = this.codeValueRepository.getOne(stateId);
                 addobj.setStateProvince(stateIdobj);
-            }
-
-        }
-        if (command.longValueOfParameterNamed("countryId") != null) {
-            if (command.longValueOfParameterNamed("countryId") != 0) {
+            } else {
                 is_address_update = true;
-                countryId = command.longValueOfParameterNamed("countryId");
+                stateIdobj = this.codeValueRepository.findByLabel(stateCode);
+                addobj.setStateProvince(stateIdobj);
+            }
+        }
+        if (command.stringValueOfParameterNamed("countryId") != null) {
+            String countryCode = command.stringValueOfParameterNamed("countryId");
+            if (NumberUtils.isParsable(countryCode)) {
+                is_address_update = true;
+                countryId = Long.parseLong(countryCode);
                 countryIdObj = this.codeValueRepository.getOne(countryId);
                 addobj.setCountry(countryIdObj);
+            } else {
+                is_address_update = true;
+                countryIdObj = this.codeValueRepository.findByLabel(countryCode);
+                addobj.setCountry(countryIdObj);
             }
-
         }
 
         if (!command.stringValueOfParameterNamed("postalCode").isEmpty()) {
@@ -280,5 +309,20 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
         }
 
         return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withEntityId(clientAddressObj.getId()).build();
+    }
+
+    @Transactional
+    @Override
+    public CommandProcessingResult deleteClientAddress(Long clientId, Long clientAddressId, Long commandId) {
+
+        final Address clientAddressObj = this.addressRepository.findById(clientAddressId)
+                .orElseThrow(() -> new AddressNotFoundException(clientAddressId));
+        this.addressRepository.delete(clientAddressObj);
+
+        return new CommandProcessingResultBuilder() //
+                .withCommandId(commandId) //
+                .withClientId(clientId) //
+                .withEntityId(clientAddressObj.getId()) //
+                .build();
     }
 }

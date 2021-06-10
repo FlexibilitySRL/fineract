@@ -63,7 +63,7 @@ public final class ClientIdentifierCommandFromApiJsonDeserializer extends Abstra
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, this.supportedParameters);
 
         final JsonElement element = this.fromApiJsonHelper.parse(json);
-        final Long documentTypeId = this.fromApiJsonHelper.extractLongNamed("documentTypeId", element);
+        final String documentTypeId = this.fromApiJsonHelper.extractStringNamed("documentTypeId", element);
         final String documentKey = this.fromApiJsonHelper.extractStringNamed("documentKey", element);
         final String documentDescription = this.fromApiJsonHelper.extractStringNamed("documentDescription", element);
         final String statusString = this.fromApiJsonHelper.extractStringNamed("status", element);

@@ -193,10 +193,12 @@ public final class ClientDataValidator {
                     .validateDateBefore(DateUtils.getLocalDateOfTenant()).validateDateBefore(submittedOnDate);
         }
 
-        if (this.fromApiJsonHelper.parameterExists(ClientApiConstants.genderIdParamName, element)) {
-            final Integer genderId = this.fromApiJsonHelper.extractIntegerSansLocaleNamed(ClientApiConstants.genderIdParamName, element);
-            baseDataValidator.reset().parameter(ClientApiConstants.genderIdParamName).value(genderId).integerGreaterThanZero();
-        }
+        /*
+         * if (this.fromApiJsonHelper.parameterExists(ClientApiConstants.genderIdParamName, element)) { final Integer
+         * genderId = this.fromApiJsonHelper.extractIntegerSansLocaleNamed(ClientApiConstants.genderIdParamName,
+         * element); baseDataValidator.reset().parameter(ClientApiConstants.genderIdParamName).value(genderId).
+         * integerGreaterThanZero(); }
+         */
 
         if (this.fromApiJsonHelper.parameterExists(ClientApiConstants.clientTypeIdParamName, element)) {
             final Integer clientType = this.fromApiJsonHelper.extractIntegerSansLocaleNamed(ClientApiConstants.clientTypeIdParamName,

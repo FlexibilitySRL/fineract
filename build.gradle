@@ -23,7 +23,7 @@ buildscript {
         retrofitVersion = '2.9.0'
         okhttpVersion = '4.9.0'
         oltuVersion = '1.0.1'
-        fineractJavaProjects = subprojects.findAll{
+        fineractJavaProjects = subprojects.findAll {
             [
                 'fineract-api',
                 'fineract-provider',
@@ -31,7 +31,7 @@ buildscript {
                 'fineract-client'
             ].contains(it.name)
         }
-        fineractPublishProjects = subprojects.findAll{
+        fineractPublishProjects = subprojects.findAll {
             [
                 'fineract-client'
             ].contains(it.name)
@@ -44,7 +44,8 @@ buildscript {
 
     dependencies {
         classpath 'com.bmuschko:gradle-cargo-plugin:2.8.0'
-        classpath 'org.apache.openjpa:openjpa:3.2.0' // when upgrading, also change OpenJPA version repeated in fineract-provider/build.gradle!
+        classpath 'org.apache.openjpa:openjpa:3.2.0'
+        // when upgrading, also change OpenJPA version repeated in fineract-provider/build.gradle!
         classpath 'com.radcortez.gradle:openjpa-gradle-plugin:3.1.0'
         classpath 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.7.1'
         classpath 'gradle.plugin.com.github.andygoossens:gradle-modernizer-plugin:1.3.0'
@@ -78,7 +79,7 @@ project.ext.jerseyVersion = '1.19.4'
 ext['groovy.version'] = '3.0.6'
 ext['swaggerFile'] = "$rootDir/fineract-provider/build/classes/java/main/static/swagger-ui/fineract.yaml".toString()
 
-allprojects  {
+allprojects {
     group = 'org.apache.fineract'
 
     repositories {
@@ -106,7 +107,8 @@ allprojects  {
             // We use the Renovate Bot to automatically propose Pull Requests (PRs) when upgrades for all of these versions are available.
 
             dependency 'org.springframework.security.oauth:spring-security-oauth2:2.5.1.RELEASE'
-            dependency 'org.apache.openjpa:openjpa:3.2.0' // when upgrading, also change OpenJPA version repeated above in buildscript!
+            dependency 'org.apache.openjpa:openjpa:3.2.0'
+            // when upgrading, also change OpenJPA version repeated above in buildscript!
             dependency 'com.google.guava:guava:30.1.1-jre'
             dependency 'com.google.code.gson:gson:2.8.6'
             dependency 'com.google.truth:truth:1.1.3'
@@ -173,7 +175,7 @@ allprojects  {
             dependency "com.google.code.findbugs:jsr305:3.0.2"
             dependency "commons-codec:commons-codec:1.15"
 
-            dependency ('org.flywaydb:flyway-core:7.0.0') {
+            dependency('org.flywaydb:flyway-core:7.0.0') {
                 // https://issues.apache.org/jira/browse/FINERACT-1172
                 // https://github.com/apache/fineract/pull/1355
                 // https://github.com/flyway/flyway/issues/2957
@@ -181,7 +183,7 @@ allprojects  {
                 exclude 'software.amazon.awssdk:s3'
             }
 
-            dependency ('org.dom4j:dom4j:2.1.3') {
+            dependency('org.dom4j:dom4j:2.1.3') {
                 exclude 'relaxngDatatype:relaxngDatatype' // already in com.sun.xml.bind:jaxb-osgi:2.3.0.1
                 // FINERACT-940 && FINERACT-966 https://github.com/spotbugs/spotbugs/issues/1128
                 exclude 'xpp3:xpp3'
@@ -252,7 +254,7 @@ allprojects  {
         strictCheck true
     }
 
-    task licenseFormatBuildScripts (type:nl.javadude.gradle.plugins.license.License) {
+    task licenseFormatBuildScripts(type: nl.javadude.gradle.plugins.license.License) {
         source = fileTree(dir: "$rootDir/", includes: [
             '**/*.bat',
             '**/*.sh',
@@ -410,7 +412,7 @@ configure(project.fineractJavaProjects) {
 
         options.deprecation = true
 
-        options.compilerArgs +=[
+        options.compilerArgs += [
             "-Xmaxwarns",
             1500,
             "-Xmaxerrs",
@@ -490,8 +492,8 @@ configure(project.fineractJavaProjects) {
 
     jacocoTestReport {
         reports {
-            html.enabled=true
-            xml.enabled=true
+            html.enabled = true
+            xml.enabled = true
             html.destination file("${buildDir}/code-coverage")
         }
     }
@@ -641,7 +643,7 @@ configure(project.fineractJavaProjects) {
     modernizer {
         includeTestClasses = true
         failOnViolations = true
-        violationLogLevel="error"
+        violationLogLevel = "error"
         javaVersion = project.targetCompatibility
         ignoreGeneratedClasses = true
     }

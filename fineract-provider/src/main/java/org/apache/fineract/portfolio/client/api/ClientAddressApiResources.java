@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -168,4 +169,20 @@ public class ClientAddressApiResources {
         return this.toApiJsonSerializer.serialize(result);
     }
 
+    @DELETE
+    @Path("/{clientId}/addresses/{addressId}")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Operation(summary = "Delete a Client Address", description = "Delete a Client Address")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = ClientAddressApiResourcesSwagger.DeleteClientsClientIdAddressesAddressIdResponse.class))) })
+    public String deleteClientIdentifier(@PathParam("clientId") @Parameter(description = "clientId") final Long clientId,
+            @PathParam("addressId") @Parameter(description = "addressId") final Long addressId) {
+
+        final CommandWrapper commandRequest = new CommandWrapperBuilder().deleteClientAddress(clientId, addressId).build();
+
+        final CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+
+        return this.toApiJsonSerializer.serialize(result);
+    }
 }

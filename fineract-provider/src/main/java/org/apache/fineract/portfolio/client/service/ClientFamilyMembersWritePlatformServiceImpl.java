@@ -132,6 +132,11 @@ public class ClientFamilyMembersWritePlatformServiceImpl implements ClientFamily
             gender = this.codeValueRepository.getOne(genderId);
         }
 
+        if (gender == null && command.stringValueOfParameterNamed("genderId") != null) {
+            String genderCode = command.stringValueOfParameterNamed("genderId");
+            gender = this.codeValueRepository.findByLabel(genderCode);
+        }
+
         if (command.longValueOfParameterNamed("professionId") != null) {
             professionId = command.longValueOfParameterNamed("professionId");
             profession = this.codeValueRepository.getOne(professionId);
@@ -229,6 +234,11 @@ public class ClientFamilyMembersWritePlatformServiceImpl implements ClientFamily
             if (member.get("genderId") != null) {
                 genderId = member.get("genderId").getAsLong();
                 gender = this.codeValueRepository.getOne(genderId);
+            }
+
+            if (gender == null && member.get("gender") != null) {
+                String genderCode = member.get("genderId").getAsString();
+                gender = this.codeValueRepository.findByLabel(genderCode);
             }
 
             if (member.get("professionId") != null) {
@@ -350,6 +360,12 @@ public class ClientFamilyMembersWritePlatformServiceImpl implements ClientFamily
         if (command.longValueOfParameterNamed("genderId") != 0) {
             genderId = command.longValueOfParameterNamed("genderId");
             gender = this.codeValueRepository.getOne(genderId);
+            clientFamilyMember.setGender(gender);
+        }
+
+        if (gender == null && command.stringValueOfParameterNamed("genderId") != null) {
+            String genderCode = command.stringValueOfParameterNamed("genderId");
+            gender = this.codeValueRepository.findByLabel(genderCode);
             clientFamilyMember.setGender(gender);
         }
 

@@ -42,6 +42,7 @@ import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
@@ -553,19 +554,24 @@ public final class Client extends AbstractPersistableCustom {
             actualChanges.put(ClientApiConstants.staffIdParamName, newValue);
         }
 
-        if (command.isChangeInLongParameterNamed(ClientApiConstants.genderIdParamName, genderId())) {
-            final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.genderIdParamName);
-            actualChanges.put(ClientApiConstants.genderIdParamName, newValue);
+        final String genderCode = command.stringValueOfParameterNamed(ClientApiConstants.genderIdParamName);
+        if (genderCode != null) {
+            if (NumberUtils.isParsable(genderCode)) {
+                if (command.isChangeInLongParameterNamed(ClientApiConstants.genderIdParamName, genderId())) {
+                    final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.genderIdParamName);
+                    actualChanges.put(ClientApiConstants.genderIdParamName, newValue);
+                }
+            } else {
+                if (command.isChangeInStringParameterNamed(ClientApiConstants.genderIdParamName, genderCode())) {
+                    final String newValue = command.stringValueOfParameterNamed(ClientApiConstants.genderIdParamName);
+                    actualChanges.put(ClientApiConstants.genderIdParamName, newValue);
+                }
+            }
         }
 
         if (command.isChangeInLongParameterNamed(ClientApiConstants.savingsProductIdParamName, savingsProductId())) {
             final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.savingsProductIdParamName);
             actualChanges.put(ClientApiConstants.savingsProductIdParamName, newValue);
-        }
-
-        if (command.isChangeInLongParameterNamed(ClientApiConstants.genderIdParamName, genderId())) {
-            final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.genderIdParamName);
-            actualChanges.put(ClientApiConstants.genderIdParamName, newValue);
         }
 
         if (command.isChangeInLongParameterNamed(ClientApiConstants.clientTypeIdParamName, clientTypeId())) {
@@ -933,6 +939,14 @@ public final class Client extends AbstractPersistableCustom {
             genderId = this.gender.getId();
         }
         return genderId;
+    }
+
+    public String genderCode() {
+        String genderCode = null;
+        if (this.gender != null) {
+            genderCode = this.gender.label();
+        }
+        return genderCode;
     }
 
     public Long clientTypeId() {

@@ -541,6 +541,15 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder deleteClientAddress(final Long clientId, final Long addressId) {
+        this.actionName = "DELETE";
+        this.entityName = "ADDRESS";
+        this.entityId = addressId;
+        this.clientId = clientId;
+        this.href = "/clients/" + clientId + "/addresses/" + addressId;
+        return this;
+    }
+
     public CommandWrapperBuilder createClient() {
         this.actionName = "CREATE";
         this.entityName = "CLIENT";

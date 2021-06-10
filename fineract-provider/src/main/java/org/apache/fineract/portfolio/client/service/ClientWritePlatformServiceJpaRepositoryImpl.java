@@ -29,6 +29,7 @@ import java.util.Locale;
 import java.util.Map;
 import javax.persistence.PersistenceException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandProcessingService;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
@@ -202,7 +203,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
      */
     private void handleDataIntegrityIssues(final JsonCommand command, final Throwable realCause, final Exception dve) {
 
-        if (realCause.getMessage().contains("external_id")) {
+        if (realCause.getMessage().contains("for key 'external_id")) {
 
             final String externalId = command.stringValueOfParameterNamed("externalId");
             throw new PlatformDataIntegrityException("error.msg.client.duplicate.externalId",
@@ -211,7 +212,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             final String accountNo = command.stringValueOfParameterNamed("accountNo");
             throw new PlatformDataIntegrityException("error.msg.client.duplicate.accountNo",
                     "Client with accountNo `" + accountNo + "` already exists", "accountNo", accountNo);
-        } else if (realCause.getMessage().contains("mobile_no")) {
+        } else if (realCause.getMessage().contains("mobile_no_UNIQUE")) {
             final String mobileNo = command.stringValueOfParameterNamed("mobileNo");
             throw new PlatformDataIntegrityException("error.msg.client.duplicate.mobileNo",
                     "Client with mobileNo `" + mobileNo + "` already exists", "mobileNo", mobileNo);
@@ -256,9 +257,16 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             }
 
             CodeValue gender = null;
-            final Long genderId = command.longValueOfParameterNamed(ClientApiConstants.genderIdParamName);
-            if (genderId != null) {
-                gender = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.GENDER, genderId);
+            final String genderCode = command.stringValueOfParameterNamed(ClientApiConstants.genderIdParamName);
+            if (genderCode != null) {
+                if (NumberUtils.isParsable(genderCode)) {
+                    final Long genderId = Long.parseLong(genderCode);
+                    if (genderId != null) {
+                        gender = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.GENDER, genderId);
+                    }
+                } else {
+                    gender = this.codeValueRepository.findOneByCodeNameAndLabelWithNotFoundDetection(ClientApiConstants.GENDER, genderCode);
+                }
             }
 
             CodeValue clientType = null;
@@ -438,13 +446,21 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             }
 
             if (changes.containsKey(ClientApiConstants.genderIdParamName)) {
-
-                final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.genderIdParamName);
+                final String genderCode = command.stringValueOfParameterNamed(ClientApiConstants.genderIdParamName);
                 CodeValue gender = null;
-                if (newValue != null) {
-                    gender = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.GENDER, newValue);
+                if (genderCode != null) {
+                    if (NumberUtils.isParsable(genderCode)) {
+                        final Long newValue = Long.parseLong(genderCode);
+                        if (newValue != null) {
+                            gender = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.GENDER,
+                                    newValue);
+                        }
+                    } else {
+                        gender = this.codeValueRepository.findOneByCodeNameAndLabelWithNotFoundDetection(ClientApiConstants.GENDER,
+                                genderCode);
+                    }
+                    if (gender != null) clientForUpdate.updateGender(gender);
                 }
-                clientForUpdate.updateGender(gender);
             }
 
             if (changes.containsKey(ClientApiConstants.savingsProductIdParamName)) {
@@ -457,15 +473,6 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
                             .orElseThrow(() -> new SavingsProductNotFoundException(savingsProductId));
                 }
                 clientForUpdate.updateSavingsProduct(savingsProductId);
-            }
-
-            if (changes.containsKey(ClientApiConstants.genderIdParamName)) {
-                final Long newValue = command.longValueOfParameterNamed(ClientApiConstants.genderIdParamName);
-                CodeValue newCodeVal = null;
-                if (newValue != null) {
-                    newCodeVal = this.codeValueRepository.findOneByCodeNameAndIdWithNotFoundDetection(ClientApiConstants.GENDER, newValue);
-                }
-                clientForUpdate.updateGender(newCodeVal);
             }
 
             if (changes.containsKey(ClientApiConstants.clientTypeIdParamName)) {

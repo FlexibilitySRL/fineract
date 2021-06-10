@@ -172,9 +172,8 @@ public class AddressCommandFromApiJsonDeserializer {
             }
         }
 
-        if (this.fromApiJsonHelper.extractLongNamed("stateProvinceId", element) != null) {
-
-            final long stateProvinceId = this.fromApiJsonHelper.extractLongNamed("stateProvinceId", element);
+        if (this.fromApiJsonHelper.extractStringNamed("stateProvinceId", element) != null) {
+            final String stateProvinceId = this.fromApiJsonHelper.extractStringNamed("stateProvinceId", element);
             if (enabledFieldsMap.get("stateProvinceId")) {
                 if (madatoryFieldsMap.get("stateProvinceId") && fromNewClient) {
                     baseDataValidator.reset().parameter("stateProvinceId").value(stateProvinceId).notBlank();
@@ -186,8 +185,8 @@ public class AddressCommandFromApiJsonDeserializer {
             }
         }
 
-        if (this.fromApiJsonHelper.extractLongNamed("countryId", element) != null) {
-            final long countryId = this.fromApiJsonHelper.extractLongNamed("countryId", element);
+        if (this.fromApiJsonHelper.extractStringNamed("countryId", element) != null) {
+            final String countryId = this.fromApiJsonHelper.extractStringNamed("countryId", element);
             if (enabledFieldsMap.get("countryId")) {
                 if (madatoryFieldsMap.get("countryId") && fromNewClient) {
                     baseDataValidator.reset().parameter("countryId").value(countryId).notBlank();

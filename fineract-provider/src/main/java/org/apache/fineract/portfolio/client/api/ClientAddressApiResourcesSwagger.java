@@ -124,4 +124,13 @@ final class ClientAddressApiResourcesSwagger {
         @Schema(example = "67")
         public Integer resourceId;
     }
+
+    @Schema(description = "DeleteClientsClientIdAddressesAddressIdResponse")
+    public static final class DeleteClientsClientIdAddressesAddressIdResponse {
+
+        private DeleteClientsClientIdAddressesAddressIdResponse() {}
+
+        @Schema(example = "67")
+        public Integer resourceId;
+    }
 }

@@ -21,6 +21,7 @@ package org.apache.fineract.portfolio.client.service;
 import java.util.Map;
 import javax.persistence.PersistenceException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.codes.domain.CodeValueRepositoryWrapper;
 import org.apache.fineract.infrastructure.codes.exception.CodeValueNotFoundException;
@@ -83,8 +84,14 @@ public class ClientIdentifierWritePlatformServiceJpaRepositoryImpl implements Cl
         try {
             final Client client = this.clientRepository.findOneWithNotFoundDetection(clientId);
 
-            final CodeValue documentType = this.codeValueRepository
-                    .findOneWithNotFoundDetection(clientIdentifierCommand.getDocumentTypeId());
+            CodeValue documentType = null;
+            if (NumberUtils.isParsable(clientIdentifierCommand.getDocumentTypeId())) {
+                documentType = this.codeValueRepository
+                        .findOneWithNotFoundDetection(Long.parseLong(clientIdentifierCommand.getDocumentTypeId()));
+            } else {
+                documentType = this.codeValueRepository.findOneByCodeWithNotFoundDetection(clientIdentifierCommand.getDocumentTypeId());
+            }
+
             documentTypeId = documentType.getId();
             documentTypeLabel = documentType.label();
 
@@ -119,7 +126,7 @@ public class ClientIdentifierWritePlatformServiceJpaRepositoryImpl implements Cl
 
         String documentTypeLabel = null;
         String documentKey = null;
-        Long documentTypeId = clientIdentifierCommand.getDocumentTypeId();
+        String documentTypeId = clientIdentifierCommand.getDocumentTypeId();
         try {
             CodeValue documentType = null;
 
@@ -130,12 +137,19 @@ public class ClientIdentifierWritePlatformServiceJpaRepositoryImpl implements Cl
             final Map<String, Object> changes = clientIdentifierForUpdate.update(command);
 
             if (changes.containsKey("documentTypeId")) {
-                documentType = this.codeValueRepository.findOneWithNotFoundDetection(documentTypeId);
-                if (documentType == null) {
-                    throw new CodeValueNotFoundException(documentTypeId);
+                if (NumberUtils.isParsable(documentTypeId)) {
+                    documentType = this.codeValueRepository.findOneWithNotFoundDetection(Long.parseLong(documentTypeId));
+                    if (documentType == null) {
+                        throw new CodeValueNotFoundException(Long.parseLong(documentTypeId));
+                    }
+                } else {
+                    documentType = this.codeValueRepository.findOneByCodeWithNotFoundDetection(documentTypeId);
+                    if (documentType == null) {
+                        throw new CodeValueNotFoundException("", documentTypeId);
+                    }
                 }
 
-                documentTypeId = documentType.getId();
+                documentTypeId = documentType.getId().toString();
                 documentTypeLabel = documentType.label();
                 clientIdentifierForUpdate.update(documentType);
             }
@@ -147,7 +161,7 @@ public class ClientIdentifierWritePlatformServiceJpaRepositoryImpl implements Cl
                 documentTypeId = clientIdentifierCommand.getDocumentTypeId();
                 documentKey = clientIdentifierForUpdate.documentKey();
             } else if (!changes.containsKey("documentTypeId") && changes.containsKey("documentKey")) {
-                documentTypeId = clientIdentifierForUpdate.documentTypeId();
+                documentTypeId = clientIdentifierForUpdate.documentTypeId().toString();
                 documentKey = clientIdentifierForUpdate.documentKey();
             }
 
@@ -163,11 +177,12 @@ public class ClientIdentifierWritePlatformServiceJpaRepositoryImpl implements Cl
                     .with(changes) //
                     .build();
         } catch (final JpaSystemException | DataIntegrityViolationException dve) {
-            handleClientIdentifierDataIntegrityViolation(documentTypeLabel, documentTypeId, documentKey, dve.getMostSpecificCause(), dve);
+            handleClientIdentifierDataIntegrityViolation(documentTypeLabel, Long.parseLong(documentTypeId), documentKey,
+                    dve.getMostSpecificCause(), dve);
             return new CommandProcessingResult(Long.valueOf(-1));
         } catch (final PersistenceException dve) {
             Throwable throwable = ExceptionUtils.getRootCause(dve.getCause());
-            handleClientIdentifierDataIntegrityViolation(documentTypeLabel, documentTypeId, documentKey, throwable, dve);
+            handleClientIdentifierDataIntegrityViolation(documentTypeLabel, Long.parseLong(documentTypeId), documentKey, throwable, dve);
             return CommandProcessingResult.empty();
         }
     }

@@ -36,7 +36,7 @@ public final class ExcludeNothingWithPrettyPrintingOffJsonSerializerGoogleGson {
         final GsonBuilder builder = new GsonBuilder();
         GoogleGsonSerializerHelper.registerTypeAdapters(builder);
 
-        this.gson = builder.create();
+        this.gson = builder.setDateFormat("yyyy-MM-dd").create();
     }
 
     public String serialize(final Object result) {

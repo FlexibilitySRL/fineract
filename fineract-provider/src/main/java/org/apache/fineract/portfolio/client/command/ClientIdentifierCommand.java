@@ -29,12 +29,12 @@ import org.apache.fineract.infrastructure.core.exception.PlatformApiDataValidati
  */
 public class ClientIdentifierCommand {
 
-    private final Long documentTypeId;
+    private final String documentTypeId;
     private final String documentKey;
     private final String description;
     private final String status;
 
-    public ClientIdentifierCommand(final Long documentTypeId, final String documentKey, final String statusString,
+    public ClientIdentifierCommand(final String documentTypeId, final String documentKey, final String statusString,
             final String description) {
         this.documentTypeId = documentTypeId;
         this.documentKey = documentKey;
@@ -42,7 +42,7 @@ public class ClientIdentifierCommand {
         this.description = description;
     }
 
-    public Long getDocumentTypeId() {
+    public String getDocumentTypeId() {
         return this.documentTypeId;
     }
 
@@ -59,7 +59,7 @@ public class ClientIdentifierCommand {
 
         final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("clientIdentifier");
 
-        baseDataValidator.reset().parameter("documentTypeId").value(this.documentTypeId).notNull().integerGreaterThanZero();
+        baseDataValidator.reset().parameter("documentTypeId").value(this.documentTypeId).notNull();
         baseDataValidator.reset().parameter("documentKey").value(this.documentKey).notBlank();
 
         if (!dataValidationErrors.isEmpty()) {
