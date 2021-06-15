@@ -22,6 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import javax.persistence.EntityExistsException;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.codes.domain.CodeValueRepository;
@@ -86,6 +87,7 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
                 stateIdobj = this.codeValueRepository.getOne(stateId);
             } else {
                 stateIdobj = this.codeValueRepository.findByLabel(stateCode);
+                if (stateIdobj == null) throw new EntityExistsException();
             }
         }
         if (command.stringValueOfParameterNamed("countryId") != null) {
@@ -95,6 +97,7 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
                 countryIdObj = this.codeValueRepository.getOne(countryId);
             } else {
                 countryIdObj = this.codeValueRepository.findByLabel(countryCode);
+                if (countryIdObj == null) throw new EntityExistsException();
             }
         }
 
@@ -142,6 +145,7 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
                         stateIdobj = this.codeValueRepository.getOne(stateId);
                     } else {
                         stateIdobj = this.codeValueRepository.findByLabel(stateCode);
+                        if (stateIdobj == null) throw new EntityExistsException();
                     }
                 }
 
@@ -152,6 +156,7 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
                         countryIdObj = this.codeValueRepository.getOne(countryId);
                     } else {
                         countryIdObj = this.codeValueRepository.findByLabel(countryCode);
+                        if (countryIdObj == null) throw new EntityExistsException();
                     }
                 }
 
@@ -259,6 +264,7 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
             } else {
                 is_address_update = true;
                 stateIdobj = this.codeValueRepository.findByLabel(stateCode);
+                if (stateIdobj == null) throw new EntityExistsException();
                 addobj.setStateProvince(stateIdobj);
             }
         }
@@ -272,6 +278,7 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
             } else {
                 is_address_update = true;
                 countryIdObj = this.codeValueRepository.findByLabel(countryCode);
+                if (countryIdObj == null) throw new EntityExistsException();
                 addobj.setCountry(countryIdObj);
             }
         }

@@ -27,6 +27,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.fineract.infrastructure.codes.domain.CodeValue;
 import org.apache.fineract.infrastructure.core.api.JsonCommand;
 import org.apache.fineract.infrastructure.core.domain.AbstractAuditableCustom;
@@ -91,9 +92,16 @@ public class ClientIdentifier extends AbstractAuditableCustom {
         final Map<String, Object> actualChanges = new LinkedHashMap<>(7);
 
         final String documentTypeIdParamName = "documentTypeId";
-        if (command.isChangeInLongParameterNamed(documentTypeIdParamName, this.documentType.getId())) {
-            final Long newValue = command.longValueOfParameterNamed(documentTypeIdParamName);
-            actualChanges.put(documentTypeIdParamName, newValue);
+        String documentTypeId = command.stringValueOfParameterNamed(documentTypeIdParamName);
+        if (NumberUtils.isParsable(documentTypeId)) {
+            if (command.isChangeInLongParameterNamed(documentTypeIdParamName, this.documentType.getId())) {
+                final Long newValue = command.longValueOfParameterNamed(documentTypeIdParamName);
+                actualChanges.put(documentTypeIdParamName, newValue);
+            }
+        } else {
+            if (command.isChangeInStringParameterNamed(documentTypeIdParamName, this.documentType.label())) {
+                actualChanges.put(documentTypeIdParamName, documentTypeId);
+            }
         }
 
         final String documentKeyParamName = "documentKey";
@@ -112,8 +120,8 @@ public class ClientIdentifier extends AbstractAuditableCustom {
 
         final String statusParamName = "status";
         if (command.isChangeInStringParameterNamed(statusParamName, ClientIdentifierStatus.fromInt(this.status).getCode())) {
-            final String newValue = command.stringValueOfParameterNamed(descriptionParamName);
-            actualChanges.put(descriptionParamName, ClientIdentifierStatus.valueOf(newValue));
+            final String newValue = command.stringValueOfParameterNamed(statusParamName);
+            actualChanges.put(statusParamName, ClientIdentifierStatus.valueOf(newValue.toUpperCase()));
             this.status = ClientIdentifierStatus.valueOf(newValue).getValue();
         }
 

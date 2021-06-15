@@ -39,9 +39,11 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriInfo;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.fineract.commands.domain.CommandWrapper;
 import org.apache.fineract.commands.service.CommandWrapperBuilder;
 import org.apache.fineract.commands.service.PortfolioCommandSourceWritePlatformService;
@@ -100,11 +102,12 @@ public class CodeValuesApiResource {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "A List of code values for a given code", content = @Content(array = @ArraySchema(schema = @Schema(implementation = CodeValuesApiResourceSwagger.GetCodeValuesDataResponse.class)))) })
     public String retrieveAllCodeValues(@Context final UriInfo uriInfo,
+            @QueryParam("byName") @Parameter(description = "type") final Boolean byName,
             @PathParam("codeId") @Parameter(description = "codeId") final Long codeId) {
 
         this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermissions);
 
-        final Collection<CodeValueData> codeValues = this.readPlatformService.retrieveAllCodeValues(codeId);
+        Collection<CodeValueData> codeValues = this.readPlatformService.retrieveAllCodeValues(codeId);
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return this.toApiJsonSerializer.serialize(settings, codeValues, RESPONSE_DATA_PARAMETERS);
@@ -119,12 +122,17 @@ public class CodeValuesApiResource {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = CodeValuesApiResourceSwagger.GetCodeValuesDataResponse.class))) })
     public String retrieveCodeValue(@Context final UriInfo uriInfo,
-            @PathParam("codeValueId") @Parameter(description = "codeValueId") final Long codeValueId,
+            @PathParam("codeValueId") @Parameter(description = "codeValueId") final String codeValueId,
             @PathParam("codeId") @Parameter(description = "codeId") final Long codeId) {
 
         this.context.authenticatedUser().validateHasReadPermission(this.resourceNameForPermissions);
 
-        final CodeValueData codeValue = this.readPlatformService.retrieveCodeValue(codeValueId);
+        CodeValueData codeValue;
+        if (NumberUtils.isParsable(codeValueId)) {
+            codeValue = this.readPlatformService.retrieveCodeValue(Long.parseLong(codeValueId));
+        } else {
+            codeValue = this.readPlatformService.retrieveCodeValueByName(codeValueId);
+        }
 
         final ApiRequestJsonSerializationSettings settings = this.apiRequestParameterHelper.process(uriInfo.getQueryParameters());
         return this.toApiJsonSerializer.serialize(settings, codeValue, RESPONSE_DATA_PARAMETERS);
