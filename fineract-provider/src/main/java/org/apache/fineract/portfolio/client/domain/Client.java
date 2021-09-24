@@ -19,6 +19,7 @@
 package org.apache.fineract.portfolio.client.domain;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -27,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -34,6 +36,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -55,6 +58,7 @@ import org.apache.fineract.infrastructure.security.service.RandomPasswordGenerat
 import org.apache.fineract.organisation.office.domain.Office;
 import org.apache.fineract.organisation.staff.domain.Staff;
 import org.apache.fineract.portfolio.client.api.ClientApiConstants;
+import org.apache.fineract.portfolio.collateralmanagement.domain.ClientCollateralManagement;
 import org.apache.fineract.portfolio.group.domain.Group;
 import org.apache.fineract.useradministration.domain.AppUser;
 
@@ -235,6 +239,9 @@ public final class Client extends AbstractPersistableCustom {
     @Temporal(TemporalType.DATE)
     private Date proposedTransferDate;
 
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<ClientCollateralManagement> clientCollateralManagements = new HashSet<>();
+
     public static Client createNew(final AppUser currentUser, final Office clientOffice, final Group clientParentGroup, final Staff staff,
             final Long savingsProductId, final CodeValue gender, final CodeValue clientType, final CodeValue clientClassification,
             final Integer legalForm, final JsonCommand command) {
@@ -298,7 +305,7 @@ public final class Client extends AbstractPersistableCustom {
             this.accountNumber = accountNo;
         }
 
-        this.submittedOnDate = Date.from(submittedOnDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+        this.submittedOnDate = Date.from(submittedOnDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         this.submittedBy = currentUser;
 
         this.status = status.getValue();
@@ -322,11 +329,11 @@ public final class Client extends AbstractPersistableCustom {
         }
 
         if (activationDate != null) {
-            this.activationDate = Date.from(activationDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+            this.activationDate = Date.from(activationDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
             this.activatedBy = currentUser;
         }
         if (officeJoiningDate != null) {
-            this.officeJoiningDate = Date.from(officeJoiningDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+            this.officeJoiningDate = Date.from(officeJoiningDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
         if (StringUtils.isNotBlank(firstname)) {
             this.firstname = firstname.trim();
@@ -365,7 +372,7 @@ public final class Client extends AbstractPersistableCustom {
             this.gender = gender;
         }
         if (dateOfBirth != null) {
-            this.dateOfBirth = Date.from(dateOfBirth.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+            this.dateOfBirth = Date.from(dateOfBirth.atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
         this.clientType = clientType;
         this.clientClassification = clientClassification;
@@ -434,7 +441,7 @@ public final class Client extends AbstractPersistableCustom {
             throw new PlatformApiDataValidationException(dataValidationErrors);
         }
 
-        this.activationDate = Date.from(activationLocalDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+        this.activationDate = Date.from(activationLocalDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         this.activatedBy = currentUser;
         this.officeJoiningDate = this.activationDate;
         this.status = ClientStatus.ACTIVE.getValue();
@@ -618,7 +625,7 @@ public final class Client extends AbstractPersistableCustom {
             actualChanges.put(ClientApiConstants.localeParamName, localeAsInput);
 
             final LocalDate newValue = command.localDateValueOfParameterNamed(ClientApiConstants.activationDateParamName);
-            this.activationDate = Date.from(newValue.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+            this.activationDate = Date.from(newValue.atStartOfDay(ZoneId.systemDefault()).toInstant());
             this.officeJoiningDate = this.activationDate;
         }
 
@@ -629,7 +636,7 @@ public final class Client extends AbstractPersistableCustom {
             actualChanges.put(ClientApiConstants.localeParamName, localeAsInput);
 
             final LocalDate newValue = command.localDateValueOfParameterNamed(ClientApiConstants.dateOfBirthParamName);
-            this.dateOfBirth = Date.from(newValue.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+            this.dateOfBirth = Date.from(newValue.atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
         if (command.isChangeInLocalDateParameterNamed(ClientApiConstants.submittedOnDateParamName, getSubmittedOnDate())) {
@@ -639,7 +646,7 @@ public final class Client extends AbstractPersistableCustom {
             actualChanges.put(ClientApiConstants.localeParamName, localeAsInput);
 
             final LocalDate newValue = command.localDateValueOfParameterNamed(ClientApiConstants.submittedOnDateParamName);
-            this.submittedOnDate = Date.from(newValue.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+            this.submittedOnDate = Date.from(newValue.atStartOfDay(ZoneId.systemDefault()).toInstant());
         }
 
         validateUpdate();

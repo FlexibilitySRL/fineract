@@ -21,6 +21,7 @@ package org.apache.fineract.portfolio.loanaccount.domain;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -129,6 +130,9 @@ public class LoanTransaction extends AbstractPersistableCustom {
     @Column(name = "manually_adjusted_or_reversed", nullable = false)
     private boolean manuallyAdjustedOrReversed;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, mappedBy = "loanTransaction")
+    private Set<LoanCollateralManagement> loanCollateralManagementSet = new HashSet<>();
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "loan_transaction_id", referencedColumnName = "id", nullable = false)
     private Set<LoanTransactionToRepaymentScheduleMapping> loanTransactionToRepaymentScheduleMappings = new HashSet<>();
@@ -164,6 +168,18 @@ public class LoanTransaction extends AbstractPersistableCustom {
             final LocalDate paymentDate, final String externalId, final LocalDateTime createdDate, final AppUser appUser) {
         return new LoanTransaction(null, office, LoanTransactionType.REPAYMENT, paymentDetail, amount.getAmount(), paymentDate, externalId,
                 createdDate, appUser);
+    }
+
+    public void setLoanTransactionToRepaymentScheduleMappings(final Integer installmentId, final BigDecimal chargePerInstallment) {
+        for (LoanTransactionToRepaymentScheduleMapping loanTransactionToRepaymentScheduleMapping : this.loanTransactionToRepaymentScheduleMappings) {
+            final LoanRepaymentScheduleInstallment loanRepaymentScheduleInstallment = loanTransactionToRepaymentScheduleMapping
+                    .getLoanRepaymentScheduleInstallment();
+            if (loanRepaymentScheduleInstallment.getInstallmentNumber().equals(installmentId)) {
+                loanRepaymentScheduleInstallment.updateLoanRepaymentSchedule(chargePerInstallment);
+                break;
+            }
+        }
+
     }
 
     public static LoanTransaction recoveryRepayment(final Office office, final Money amount, final PaymentDetail paymentDetail,
@@ -204,9 +220,9 @@ public class LoanTransaction extends AbstractPersistableCustom {
         PaymentDetail paymentDetail = null;
         String externalId = null;
         return new LoanTransaction(loan, office, LoanTransactionType.ACCRUAL.getValue(),
-                Date.from(interestAppliedDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()), interestPortion,
-                principalPortion, interestPortion, feesPortion, penaltiesPortion, overPaymentPortion, reversed, paymentDetail, externalId,
-                createdDate, appUser);
+                Date.from(interestAppliedDate.atStartOfDay(ZoneId.systemDefault()).toInstant()), interestPortion, principalPortion,
+                interestPortion, feesPortion, penaltiesPortion, overPaymentPortion, reversed, paymentDetail, externalId, createdDate,
+                appUser);
     }
 
     public static LoanTransaction accrual(final Loan loan, final Office office, final Money amount, final Money interest,
@@ -226,35 +242,35 @@ public class LoanTransaction extends AbstractPersistableCustom {
         String externalId = null;
         LocalDateTime createdDate = DateUtils.getLocalDateTimeOfTenant();
         return new LoanTransaction(loan, office, LoanTransactionType.ACCRUAL.getValue(),
-                Date.from(dateOf.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()), amount, principalPortion, interestPortion,
+                Date.from(dateOf.atStartOfDay(ZoneId.systemDefault()).toInstant()), amount, principalPortion, interestPortion,
                 feeChargesPortion, penaltyChargesPortion, overPaymentPortion, reversed, paymentDetail, externalId, createdDate, appUser);
     }
 
     public static LoanTransaction initiateTransfer(final Office office, final Loan loan, final LocalDate transferDate,
             final LocalDateTime createdDate, final AppUser appUser) {
         return new LoanTransaction(loan, office, LoanTransactionType.INITIATE_TRANSFER.getValue(),
-                Date.from(transferDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()),
-                loan.getSummary().getTotalOutstanding(), loan.getSummary().getTotalPrincipalOutstanding(),
-                loan.getSummary().getTotalInterestOutstanding(), loan.getSummary().getTotalFeeChargesOutstanding(),
-                loan.getSummary().getTotalPenaltyChargesOutstanding(), null, false, null, null, createdDate, appUser);
+                Date.from(transferDate.atStartOfDay(ZoneId.systemDefault()).toInstant()), loan.getSummary().getTotalOutstanding(),
+                loan.getSummary().getTotalPrincipalOutstanding(), loan.getSummary().getTotalInterestOutstanding(),
+                loan.getSummary().getTotalFeeChargesOutstanding(), loan.getSummary().getTotalPenaltyChargesOutstanding(), null, false, null,
+                null, createdDate, appUser);
     }
 
     public static LoanTransaction approveTransfer(final Office office, final Loan loan, final LocalDate transferDate,
             final LocalDateTime createdDate, final AppUser appUser) {
         return new LoanTransaction(loan, office, LoanTransactionType.APPROVE_TRANSFER.getValue(),
-                Date.from(transferDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()),
-                loan.getSummary().getTotalOutstanding(), loan.getSummary().getTotalPrincipalOutstanding(),
-                loan.getSummary().getTotalInterestOutstanding(), loan.getSummary().getTotalFeeChargesOutstanding(),
-                loan.getSummary().getTotalPenaltyChargesOutstanding(), null, false, null, null, createdDate, appUser);
+                Date.from(transferDate.atStartOfDay(ZoneId.systemDefault()).toInstant()), loan.getSummary().getTotalOutstanding(),
+                loan.getSummary().getTotalPrincipalOutstanding(), loan.getSummary().getTotalInterestOutstanding(),
+                loan.getSummary().getTotalFeeChargesOutstanding(), loan.getSummary().getTotalPenaltyChargesOutstanding(), null, false, null,
+                null, createdDate, appUser);
     }
 
     public static LoanTransaction withdrawTransfer(final Office office, final Loan loan, final LocalDate transferDate,
             final LocalDateTime createdDate, final AppUser appUser) {
         return new LoanTransaction(loan, office, LoanTransactionType.WITHDRAW_TRANSFER.getValue(),
-                Date.from(transferDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()),
-                loan.getSummary().getTotalOutstanding(), loan.getSummary().getTotalPrincipalOutstanding(),
-                loan.getSummary().getTotalInterestOutstanding(), loan.getSummary().getTotalFeeChargesOutstanding(),
-                loan.getSummary().getTotalPenaltyChargesOutstanding(), null, false, null, null, createdDate, appUser);
+                Date.from(transferDate.atStartOfDay(ZoneId.systemDefault()).toInstant()), loan.getSummary().getTotalOutstanding(),
+                loan.getSummary().getTotalPrincipalOutstanding(), loan.getSummary().getTotalInterestOutstanding(),
+                loan.getSummary().getTotalFeeChargesOutstanding(), loan.getSummary().getTotalPenaltyChargesOutstanding(), null, false, null,
+                null, createdDate, appUser);
     }
 
     public static LoanTransaction refund(final Office office, final Money amount, final PaymentDetail paymentDetail,
@@ -344,7 +360,7 @@ public class LoanTransaction extends AbstractPersistableCustom {
         this.loan = loan;
         this.typeOf = type.getValue();
         this.amount = amount;
-        this.dateOf = Date.from(date.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+        this.dateOf = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
         this.externalId = externalId;
         this.office = office;
         this.submittedOnDate = DateUtils.getDateOfTenant();
@@ -359,7 +375,7 @@ public class LoanTransaction extends AbstractPersistableCustom {
         this.typeOf = type.getValue();
         this.paymentDetail = paymentDetail;
         this.amount = amount;
-        this.dateOf = Date.from(date.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant());
+        this.dateOf = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
         this.externalId = externalId;
         this.office = office;
         this.submittedOnDate = DateUtils.getDateOfTenant();
@@ -494,6 +510,14 @@ public class LoanTransaction extends AbstractPersistableCustom {
         return !isReversed();
     }
 
+    public void setReversed() {
+        this.reversed = true;
+    }
+
+    public void setManuallyAdjustedOrReversed() {
+        this.manuallyAdjustedOrReversed = true;
+    }
+
     public boolean isAnyTypeOfRepayment() {
         return isRepayment() || isRepaymentAtDisbursement() || isRecoveryRepayment();
     }
@@ -612,9 +636,9 @@ public class LoanTransaction extends AbstractPersistableCustom {
             paymentDetailData = this.paymentDetail.toData();
         }
         return new LoanTransactionData(getId(), this.office.getId(), this.office.getName(), transactionType, paymentDetailData,
-                currencyData, getTransactionDate(), this.amount, this.principalPortion, this.interestPortion, this.feeChargesPortion,
-                this.penaltyChargesPortion, this.overPaymentPortion, this.externalId, transfer, null, outstandingLoanBalance,
-                this.unrecognizedIncomePortion, this.manuallyAdjustedOrReversed);
+                currencyData, getTransactionDate(), this.amount, this.loan.getNetDisbursalAmount(), this.principalPortion,
+                this.interestPortion, this.feeChargesPortion, this.penaltyChargesPortion, this.overPaymentPortion, this.externalId,
+                transfer, null, outstandingLoanBalance, this.unrecognizedIncomePortion, this.manuallyAdjustedOrReversed);
     }
 
     public Map<String, Object> toMapData(final CurrencyData currencyData) {
@@ -629,6 +653,7 @@ public class LoanTransaction extends AbstractPersistableCustom {
         thisTransactionData.put("date", getTransactionDate());
         thisTransactionData.put("currency", currencyData);
         thisTransactionData.put("amount", this.amount);
+        thisTransactionData.put("netDisbursalAmount", this.loan.getNetDisbursalAmount());
         thisTransactionData.put("principalPortion", this.principalPortion);
         thisTransactionData.put("interestPortion", this.interestPortion);
         thisTransactionData.put("feeChargesPortion", this.feeChargesPortion);
@@ -801,6 +826,10 @@ public class LoanTransaction extends AbstractPersistableCustom {
     public boolean isPaymentTransaction() {
         return this.isNotReversed() && !(this.isDisbursement() || this.isAccrual() || this.isRepaymentAtDisbursement()
                 || this.isNonMonetaryTransaction() || this.isIncomePosting());
+    }
+
+    public Set<LoanCollateralManagement> getLoanCollateralManagementSet() {
+        return this.loanCollateralManagementSet;
     }
 
     // TODO missing hashCode(), equals(Object obj), but probably OK as long as

@@ -76,17 +76,16 @@ public class AddressCommandFromApiJsonDeserializer {
         final List<FieldConfigurationData> configurationData = new ArrayList<>(this.readservice.retrieveFieldConfigurationList("ADDRESS"));
         final List<String> enabledFieldList = new ArrayList<>();
 
+        // validate the json fields from the configuration data fields
         final Map<String, Boolean> madatoryFieldsMap = new HashMap<String, Boolean>();
         final Map<String, Boolean> enabledFieldsMap = new HashMap<String, Boolean>();
         final Map<String, String> regexFieldsMap = new HashMap<String, String>();
 
-        // validate the json fields from the configuration data fields
-
         for (final FieldConfigurationData data : configurationData) {
             madatoryFieldsMap.put(data.getField(), data.isIs_mandatory());
-            enabledFieldsMap.put(data.getField(), data.isisEnabled());
+            enabledFieldsMap.put(data.getField(), data.isEnabled());
             regexFieldsMap.put(data.getField(), data.getValidation_regex());
-            if (data.isisEnabled()) {
+            if (data.isEnabled()) {
                 enabledFieldList.add(data.getField());
             }
         }
@@ -110,17 +109,6 @@ public class AddressCommandFromApiJsonDeserializer {
 
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, supportedParameters);
 
-        final String addressLine1 = this.fromApiJsonHelper.extractStringNamed("addressLine1", element);
-        if (enabledFieldsMap.get("addressLine1")) {
-            if (madatoryFieldsMap.get("addressLine1") && fromNewClient) {
-                baseDataValidator.reset().parameter("addressLine1").value(addressLine1).notBlank();
-            }
-            if (!regexFieldsMap.get("addressLine1").isEmpty()) {
-                baseDataValidator.reset().parameter("addressLine1").value(addressLine1)
-                        .matchesRegularExpression(regexFieldsMap.get("addressLine1"));
-            }
-
-        }
         final String addressLine2 = this.fromApiJsonHelper.extractStringNamed("addressLine2", element);
         if (enabledFieldsMap.get("addressLine2")) {
             if (madatoryFieldsMap.get("addressLine2") && fromNewClient) {
@@ -221,22 +209,7 @@ public class AddressCommandFromApiJsonDeserializer {
                 }
             }
         }
-
-        if (this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed("longitude", element) != null) {
-            final BigDecimal longitude = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed("longitude", element);
-            if (enabledFieldsMap.get("longitude")) {
-                if (madatoryFieldsMap.get("longitude") && fromNewClient) {
-                    baseDataValidator.reset().parameter("longitude").value(longitude).notBlank();
-                }
-                if (!regexFieldsMap.get("longitude").isEmpty()) {
-                    baseDataValidator.reset().parameter("longitude").value(longitude)
-                            .matchesRegularExpression(regexFieldsMap.get("longitude"));
-                }
-            }
-        }
-
         throwExceptionIfValidationWarningsExist(dataValidationErrors);
-
     }
 
     private void throwExceptionIfValidationWarningsExist(final List<ApiParameterError> dataValidationErrors) {

@@ -30,10 +30,12 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -53,6 +55,7 @@ import org.apache.fineract.infrastructure.core.serialization.ApiRequestJsonSeria
 import org.apache.fineract.infrastructure.core.serialization.DefaultToApiJsonSerializer;
 import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.security.service.PlatformSecurityContext;
+import org.apache.fineract.portfolio.loanaccount.data.LoanRepaymentScheduleInstallmentData;
 import org.apache.fineract.portfolio.loanaccount.data.LoanTransactionData;
 import org.apache.fineract.portfolio.loanaccount.service.LoanChargePaidByReadPlatformService;
 import org.apache.fineract.portfolio.loanaccount.service.LoanReadPlatformService;
@@ -131,6 +134,10 @@ public class LoanTransactionsApiResource {
             transactionData = this.loanReadPlatformService.retrieveNewClosureDetails();
         } else if (is(commandParam, "disburse")) {
             transactionData = this.loanReadPlatformService.retrieveDisbursalTemplate(loanId, true);
+            transactionData.setNumberOfRepayments(this.loanReadPlatformService.retrieveNumberOfRepayments(loanId));
+            final List<LoanRepaymentScheduleInstallmentData> loanRepaymentScheduleInstallmentData = this.loanReadPlatformService
+                    .getRepaymentDataResponse(loanId);
+            transactionData.setLoanRepaymentScheduleInstallments(loanRepaymentScheduleInstallmentData);
         } else if (is(commandParam, "disburseToSavings")) {
             transactionData = this.loanReadPlatformService.retrieveDisbursalTemplate(loanId, false);
         } else if (is(commandParam, "recoverypayment")) {
@@ -262,4 +269,19 @@ public class LoanTransactionsApiResource {
         return this.toApiJsonSerializer.serialize(result);
     }
 
+    @PUT
+    @Path("{transactionId}")
+    @Consumes({ MediaType.APPLICATION_JSON })
+    @Produces({ MediaType.APPLICATION_JSON })
+    @Operation(summary = "Undo a Waive Charge Transaction", description = "Undo a Waive Charge Transaction")
+    @RequestBody(required = true, content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PutChargeTransactionChangesRequest.class)))
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = LoanTransactionsApiResourceSwagger.PutChargeTransactionChangesResponse.class))) })
+    public String undoWaiveCharge(@PathParam("loanId") @Parameter(description = "loanId") final Long loanId,
+            @PathParam("transactionId") @Parameter(description = "transactionId") final Long transactionId) {
+
+        final CommandWrapper commandRequest = new CommandWrapperBuilder().undoWaiveChargeTransaction(loanId, transactionId).build();
+        CommandProcessingResult result = this.commandsSourceWritePlatformService.logCommandSource(commandRequest);
+        return this.toApiJsonSerializer.serialize(result);
+    }
 }

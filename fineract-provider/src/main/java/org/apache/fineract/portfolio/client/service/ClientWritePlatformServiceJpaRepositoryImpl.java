@@ -20,6 +20,7 @@ package org.apache.fineract.portfolio.client.service;
 
 import com.google.gson.JsonElement;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
@@ -46,7 +47,6 @@ import org.apache.fineract.infrastructure.core.data.CommandProcessingResult;
 import org.apache.fineract.infrastructure.core.data.CommandProcessingResultBuilder;
 import org.apache.fineract.infrastructure.core.exception.PlatformDataIntegrityException;
 import org.apache.fineract.infrastructure.core.serialization.FromJsonHelper;
-import org.apache.fineract.infrastructure.core.service.DateUtils;
 import org.apache.fineract.infrastructure.dataqueries.data.EntityTables;
 import org.apache.fineract.infrastructure.dataqueries.data.StatusEnum;
 import org.apache.fineract.infrastructure.dataqueries.service.EntityDatatableChecksWritePlatformService;
@@ -742,8 +742,8 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
                 if (loanStatus.isOpen() || loanStatus.isPendingApproval() || loanStatus.isAwaitingDisbursal()) {
                     final String errorMessage = "Client cannot be closed because of non-closed loans.";
                     throw new InvalidClientStateTransitionException("close", "loan.non-closed", errorMessage);
-                } else if (loanStatus.isClosed() && loan.getClosedOnDate()
-                        .after(Date.from(closureDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()))) {
+                } else if (loanStatus.isClosed()
+                        && loan.getClosedOnDate().after(Date.from(closureDate.atStartOfDay(ZoneId.systemDefault()).toInstant()))) {
                     final String errorMessage = "The client closureDate cannot be before the loan closedOnDate.";
                     throw new InvalidClientStateTransitionException("close", "date.cannot.before.loan.closed.date", errorMessage,
                             closureDate, loan.getClosedOnDate());
@@ -761,7 +761,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
                 }
             }
 
-            client.close(currentUser, closureReason, Date.from(closureDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
+            client.close(currentUser, closureReason, Date.from(closureDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
             this.clientRepository.saveAndFlush(client);
             return new CommandProcessingResultBuilder() //
                     .withCommandId(command.commandId()) //
@@ -855,7 +855,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             throw new InvalidClientStateTransitionException("rejection", "date.cannot.before.client.submitted.date", errorMessage,
                     rejectionDate, client.getSubmittedOnDate());
         }
-        client.reject(currentUser, rejectionReason, Date.from(rejectionDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
+        client.reject(currentUser, rejectionReason, Date.from(rejectionDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         this.clientRepository.saveAndFlush(client);
         this.businessEventNotifierService.notifyBusinessEventWasExecuted(BusinessEvents.CLIENTS_REJECT,
                 constructEntityMap(BusinessEntity.CLIENT, client));
@@ -887,8 +887,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             throw new InvalidClientStateTransitionException("withdrawal", "date.cannot.before.client.submitted.date", errorMessage,
                     withdrawalDate, client.getSubmittedOnDate());
         }
-        client.withdraw(currentUser, withdrawalReason,
-                Date.from(withdrawalDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
+        client.withdraw(currentUser, withdrawalReason, Date.from(withdrawalDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         this.clientRepository.saveAndFlush(client);
         return new CommandProcessingResultBuilder() //
                 .withCommandId(command.commandId()) //
@@ -913,7 +912,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             throw new InvalidClientStateTransitionException("reactivation", "date.cannot.before.client.closed.date", errorMessage,
                     reactivateDate, client.getClosureDate());
         }
-        client.reActivate(currentUser, Date.from(reactivateDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
+        client.reActivate(currentUser, Date.from(reactivateDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         this.clientRepository.saveAndFlush(client);
         return new CommandProcessingResultBuilder() //
                 .withCommandId(command.commandId()) //
@@ -939,7 +938,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
                     undoRejectDate, client.getRejectedDate());
         }
 
-        client.reOpened(currentUser, Date.from(undoRejectDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
+        client.reOpened(currentUser, Date.from(undoRejectDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         this.clientRepository.saveAndFlush(client);
 
         return new CommandProcessingResultBuilder() //
@@ -965,7 +964,7 @@ public class ClientWritePlatformServiceJpaRepositoryImpl implements ClientWriteP
             throw new InvalidClientStateTransitionException("reopened", "date.cannot.before.client.withdrawal.date", errorMessage,
                     undoWithdrawalDate, client.getWithdrawalDate());
         }
-        client.reOpened(currentUser, Date.from(undoWithdrawalDate.atStartOfDay(DateUtils.getDateTimeZoneOfTenant()).toInstant()));
+        client.reOpened(currentUser, Date.from(undoWithdrawalDate.atStartOfDay(ZoneId.systemDefault()).toInstant()));
         this.clientRepository.saveAndFlush(client);
 
         return new CommandProcessingResultBuilder() //

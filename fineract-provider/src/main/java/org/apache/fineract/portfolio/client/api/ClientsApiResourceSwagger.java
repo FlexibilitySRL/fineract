@@ -20,6 +20,7 @@ package org.apache.fineract.portfolio.client.api;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -207,10 +208,24 @@ final class ClientsApiResourceSwagger {
 
         }
 
+        static final class GetClientsGroups {
+
+            private GetClientsGroups() {}
+
+            @Schema(example = "000000001")
+            public Long id;
+            @Schema(example = "000000002")
+            public String accountNo;
+            @Schema(example = "Group name")
+            public String name;
+            @Schema(example = "000000003")
+            public Long externalId;
+        }
+
         @Schema(example = "27")
         public Integer id;
         @Schema(example = "000000027")
-        public Long accountNo;
+        public String accountNo;
         public GetClientsClientIdStatus status;
         @Schema(example = "true")
         public Boolean active;
@@ -232,13 +247,24 @@ final class ClientsApiResourceSwagger {
         @Schema(example = "account overdraft")
         public String savingsProductName;
         @Schema(example = "[]")
-        public List<String> groups;
+        public List<GetClientsGroups> groups;
     }
 
     @Schema(description = "PostClientsRequest")
     public static final class PostClientsRequest {
 
         private PostClientsRequest() {}
+
+        static final class PostClientsDatatable {
+
+            private PostClientsDatatable() {}
+
+            @Schema(example = "Client Beneficiary information")
+            public String registeredTableName;
+            @Schema(example = "data")
+            public HashMap<String, Object> data;
+
+        }
 
         @Schema(example = "1")
         public Integer officeId;
@@ -254,6 +280,9 @@ final class ClientsApiResourceSwagger {
         public Boolean active;
         @Schema(example = "04 March 2009")
         public String activationDate;
+        @Schema(description = "List of PostClientsDatatable")
+        public List<PostClientsDatatable> datatables;
+
     }
 
     @Schema(description = "PostClientsResponse")
@@ -318,8 +347,12 @@ final class ClientsApiResourceSwagger {
 
         private PostClientsClientIdRequest() {}
 
-        @Schema(example = "We cannot accept transfers of clients having loans with less than 1 repayment left")
-        public String note;
+        @Schema(example = "03 August 2021")
+        public String activationDate;
+        @Schema(example = "dd MMM yyyy")
+        public String dateFormat;
+        @Schema(example = "en")
+        public String locale;
     }
 
     @Schema(description = "PostClientsClientIdResponse")
@@ -327,6 +360,8 @@ final class ClientsApiResourceSwagger {
 
         private PostClientsClientIdResponse() {}
 
+        @Schema(example = "2")
+        public Integer officeId;
         @Schema(example = "2")
         public Integer clientId;
         @Schema(example = "2")
@@ -385,7 +420,7 @@ final class ClientsApiResourceSwagger {
             @Schema(example = "1")
             public Integer id;
             @Schema(example = "000000001")
-            public Long accountNo;
+            public String accountNo;
             @Schema(example = "456")
             public Integer externalId;
             @Schema(example = "1")
@@ -429,7 +464,7 @@ final class ClientsApiResourceSwagger {
                 @Schema(example = "savingsAccountStatusType.submitted.and.pending.approval")
                 public String code;
                 @Schema(example = "Submitted and pending approval")
-                public String description;
+                public String value;
                 @Schema(example = "true")
                 public Boolean submittedAndPendingApproval;
                 @Schema(example = "false")
@@ -442,18 +477,41 @@ final class ClientsApiResourceSwagger {
                 public Boolean active;
                 @Schema(example = "false")
                 public Boolean closed;
+                @Schema(example = "false")
+                public Boolean prematureClosed;
+                @Schema(example = "false")
+                public Boolean transferInProgress;
+                @Schema(example = "false")
+                public Boolean transferOnHold;
+                @Schema(example = "false")
+                public Boolean matured;
+            }
+
+            static final class GetClientsSavingsAccountsDepositType {
+
+                private GetClientsSavingsAccountsDepositType() {}
+
+                @Schema(example = "100")
+                public Integer id;
+                @Schema(example = "depositAccountType.savingsDeposit")
+                public String code;
+                @Schema(example = "Savings")
+                public String value;
             }
 
             @Schema(example = "7")
             public Integer id;
             @Schema(example = "000000007")
-            public Long accountNo;
+            public String accountNo;
             @Schema(example = "2")
             public Integer productId;
             @Schema(example = "Other product")
             public String productName;
+            @Schema(example = "OP")
+            public String shortProductName;
             public GetClientsSavingsAccountsStatus status;
             public GetClientsSavingsAccountsCurrency currency;
+            public GetClientsSavingsAccountsDepositType depositType;
         }
 
         public Set<GetClientsLoanAccounts> loanAccounts;

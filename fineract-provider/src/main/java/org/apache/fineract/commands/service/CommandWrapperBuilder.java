@@ -482,6 +482,14 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder createCollateral() {
+        this.actionName = "CREATE";
+        this.entityId = null;
+        this.entityName = "COLLATERAL_PRODUCT";
+        this.href = "/collateral-product";
+        return this;
+    }
+
     public CommandWrapperBuilder updateCharge(final Long chargeId) {
         this.actionName = "UPDATE";
         this.entityName = "CHARGE";
@@ -879,12 +887,48 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder undoWaiveChargeTransaction(final Long loanId, final Long transactionId) {
+        this.actionName = "UNDO";
+        this.entityName = "WAIVECHARGE";
+        this.entityId = transactionId;
+        this.loanId = loanId;
+        this.href = "/loans/" + loanId + "/transactions?command=undo";
+        return this;
+    }
+
     public CommandWrapperBuilder createLoanApplication() {
         this.actionName = "CREATE";
         this.entityName = "LOAN";
         this.entityId = null;
         this.loanId = null;
         this.href = "/loans";
+        return this;
+    }
+
+    public CommandWrapperBuilder updatePostDatedCheck(final Long id, final Long loanId) {
+        this.actionName = "UPDATE";
+        this.entityName = "REPAYMENT_WITH_POSTDATEDCHECKS";
+        this.entityId = id;
+        this.loanId = loanId;
+        this.href = "/loans/" + loanId + "/repaymentwithpostdatedchecks/" + id;
+        return this;
+    }
+
+    public CommandWrapperBuilder bouncedCheck(final Long id, final Long loanId) {
+        this.actionName = "BOUNCE";
+        this.entityName = "REPAYMENT_WITH_POSTDATEDCHECKS";
+        this.entityId = id;
+        this.loanId = loanId;
+        this.href = "/loans/" + loanId + "/repaymentwithpostdatedchecks/" + id;
+        return this;
+    }
+
+    public CommandWrapperBuilder deletePostDatedCheck(final Long id, final Long loanId) {
+        this.actionName = "DELETE";
+        this.entityName = "REPAYMENT_WITH_POSTDATEDCHECKS";
+        this.entityId = id;
+        this.loanId = loanId;
+        this.href = "/loans/" + loanId + "/repaymentwithpostdatedchecks/" + id;
         return this;
     }
 
@@ -1823,12 +1867,63 @@ public class CommandWrapperBuilder {
         return this;
     }
 
+    public CommandWrapperBuilder updateCollateralProduct(final Long collateralId) {
+        this.actionName = "UPDATE";
+        this.entityName = "COLLATERAL_PRODUCT";
+        this.entityId = collateralId;
+        this.href = "/collateral-management/" + collateralId;
+        return this;
+    }
+
+    public CommandWrapperBuilder updateClientCollateralProduct(final Long clientId, final Long collateralId) {
+        this.actionName = "UPDATE";
+        this.entityName = "CLIENT_COLLATERAL_PRODUCT";
+        this.entityId = collateralId;
+        this.clientId = clientId;
+        this.href = "/clients/" + clientId + "/collateral/" + collateralId;
+        return this;
+    }
+
+    public CommandWrapperBuilder deleteLoanCollateral(final Long loanId, final Long collateralId) {
+        this.actionName = "DELETE";
+        this.entityName = "LOAN_COLLATERAL_PRODUCT";
+        this.entityId = collateralId;
+        this.loanId = loanId;
+        this.href = "/loans/" + loanId + "/collateral/" + collateralId;
+        return this;
+    }
+
     public CommandWrapperBuilder deleteCollateral(final Long loanId, final Long collateralId) {
         this.actionName = "DELETE";
         this.entityName = "COLLATERAL";
         this.entityId = collateralId;
         this.loanId = loanId;
         this.href = "/loans/" + loanId + "/collaterals/" + collateralId;
+        return this;
+    }
+
+    public CommandWrapperBuilder deleteCollateralProduct(final Long collateralId) {
+        this.actionName = "DELETE";
+        this.entityName = "COLLATERAL_PRODUCT";
+        this.entityId = collateralId;
+        this.href = "/collateral-management/" + collateralId;
+        return this;
+    }
+
+    public CommandWrapperBuilder deleteClientCollateralProduct(final Long collateralId, final Long clientId) {
+        this.actionName = "DELETE";
+        this.entityName = "CLIENT_COLLATERAL_PRODUCT";
+        this.entityId = collateralId;
+        this.clientId = clientId;
+        this.href = "/clients/" + clientId + "/collateral-management/" + collateralId;
+        return this;
+    }
+
+    public CommandWrapperBuilder addClientCollateralProduct(final Long clientId) {
+        this.actionName = "CREATE";
+        this.entityName = "CLIENT_COLLATERAL_PRODUCT";
+        this.clientId = clientId;
+        this.href = "/clients/" + clientId + "/collateral-management";
         return this;
     }
 
