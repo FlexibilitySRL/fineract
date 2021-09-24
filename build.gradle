@@ -38,7 +38,7 @@ buildscript {
         }
     }
     repositories {
-        jcenter()
+        mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
     }
 
@@ -76,6 +76,7 @@ Run as:
 gradle clean bootRun'''
 
 project.ext.jerseyVersion = '1.19.4'
+project.ext.pentahoVersion = '7.0.0.6-95'
 ext['groovy.version'] = '3.0.6'
 ext['swaggerFile'] = "$rootDir/fineract-provider/build/classes/java/main/static/swagger-ui/fineract.yaml".toString()
 
@@ -83,7 +84,8 @@ allprojects {
     group = 'org.apache.fineract'
 
     repositories {
-        jcenter()
+        mavenCentral()
+        maven { url "https://nexus.pentaho.org/repository/omni/" }
     }
 
     apply plugin: 'io.spring.dependency-management'
@@ -211,6 +213,27 @@ allprojects {
                 entry 'json-path'
                 entry 'xml-path'
             }
+
+            // pentaho
+            dependencySet(group: 'pentaho-reporting-engine', version: pentahoVersion) {
+                entry 'pentaho-reporting-engine-classic-core'
+                entry 'pentaho-reporting-engine-classic-extensions'
+                entry 'pentaho-reporting-engine-classic-extensions-scripting'
+                entry 'pentaho-reporting-engine-wizard-core'
+            }
+
+            dependencySet(group: 'pentaho-library', version: pentahoVersion) {
+                entry 'libbase'
+                entry 'libdocbundle'
+                entry 'libfonts'
+                entry 'libformat'
+                entry 'libformula'
+                entry 'libloader'
+                entry 'librepository'
+                entry 'libserializer'
+                entry 'libsparkline'
+                entry 'libxml'
+            }
         }
     }
 
@@ -270,6 +293,7 @@ allprojects {
     rat {
         verbose = false
         reportDir = file("$buildDir/reports/rat")
+        failOnError = false
         excludes = [
             '**/src/main/templates/**/*.mustache',
             '**/.dockerignore',

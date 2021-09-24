@@ -78,7 +78,24 @@ dependencies {
 
             'com.google.cloud.sql:mysql-socket-factory-connector-j-8:1.3.2',
             'com.squareup.retrofit2:converter-gson',
-            'com.sun.activation:jakarta.activation:1.2.2'
+            'com.sun.activation:jakarta.activation:1.2.2',
+
+            // Pentaho..
+            'pentaho-reporting-engine:pentaho-reporting-engine-classic-core',
+            'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions',
+            'pentaho-reporting-engine:pentaho-reporting-engine-classic-extensions-scripting',
+            'pentaho-reporting-engine:pentaho-reporting-engine-wizard-core',
+            'pentaho-library:libbase',
+            'pentaho-library:libdocbundle',
+            'pentaho-library:libfonts',
+            'pentaho-library:libformat',
+            'pentaho-library:libformula',
+            'pentaho-library:libloader',
+            'pentaho-library:librepository',
+            'pentaho-library:libserializer',
+            'pentaho-library:libsparkline',
+            'pentaho-library:libxml'
+
             )
     implementation ('jakarta.xml.bind:jakarta.xml.bind-api') {
         exclude group: 'jakarta.activation'
