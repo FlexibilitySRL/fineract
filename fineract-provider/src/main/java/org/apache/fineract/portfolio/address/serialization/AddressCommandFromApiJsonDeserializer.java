@@ -28,6 +28,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.fineract.infrastructure.core.data.ApiParameterError;
 import org.apache.fineract.infrastructure.core.data.DataValidatorBuilder;
@@ -71,144 +73,35 @@ public class AddressCommandFromApiJsonDeserializer {
         final DataValidatorBuilder baseDataValidator = new DataValidatorBuilder(dataValidationErrors).resource("Address");
 
         final JsonElement element = this.fromApiJsonHelper.parse(json);
-        Set<String> supportedParameters = new HashSet<>();
-
         final List<FieldConfigurationData> configurationData = new ArrayList<>(this.readservice.retrieveFieldConfigurationList("ADDRESS"));
-        final List<String> enabledFieldList = new ArrayList<>();
-
         // validate the json fields from the configuration data fields
-        final Map<String, Boolean> madatoryFieldsMap = new HashMap<String, Boolean>();
-        final Map<String, Boolean> enabledFieldsMap = new HashMap<String, Boolean>();
-        final Map<String, String> regexFieldsMap = new HashMap<String, String>();
+        final List<FieldConfigurationData> configData = configurationData.stream().filter(FieldConfigurationData::isEnabled)
+                .collect(Collectors.toList());
 
-        for (final FieldConfigurationData data : configurationData) {
-            madatoryFieldsMap.put(data.getField(), data.isIs_mandatory());
-            enabledFieldsMap.put(data.getField(), data.isEnabled());
-            regexFieldsMap.put(data.getField(), data.getValidation_regex());
-            if (data.isEnabled()) {
-                enabledFieldList.add(data.getField());
-            }
-        }
-        if (fromNewClient) {
+        final Set<String> supportedParameters = configData.stream().map(FieldConfigurationData::getField).collect(Collectors.toSet());
 
-            enabledFieldList.add("addressTypeId");
-            enabledFieldList.add("locale");
-            enabledFieldList.add("dateFormat");
-            supportedParameters = new HashSet<>(enabledFieldList);
-
-            madatoryFieldsMap.put("addressTypeId", true);
-
-        }
-        if (!fromNewClient) {
-            enabledFieldList.add("locale");
-            enabledFieldList.add("dateFormat");
-            enabledFieldList.add("addressId");
-            madatoryFieldsMap.put("addressId", true);
-            supportedParameters = new HashSet<>(enabledFieldList);
-        }
+        supportedParameters.add("locale");
+        supportedParameters.add("dateFormat");
+        supportedParameters.add(fromNewClient ? "addressTypeId" : "addressId");
 
         this.fromApiJsonHelper.checkForUnsupportedParameters(typeOfMap, json, supportedParameters);
+        configData.forEach(fieldConfiguration -> {
+            final String field = fieldConfiguration.getField().equals("addressType") ? "addressTypeId" : fieldConfiguration.getField();
+            final String fieldValue = this.fromApiJsonHelper.extractStringNamed(field, element);
 
-        final String addressLine2 = this.fromApiJsonHelper.extractStringNamed("addressLine2", element);
-        if (enabledFieldsMap.get("addressLine2")) {
-            if (madatoryFieldsMap.get("addressLine2") && fromNewClient) {
-                baseDataValidator.reset().parameter("addressLine2").value(addressLine2).notBlank();
-            }
-            if (!regexFieldsMap.get("addressLine2").isEmpty()) {
-                baseDataValidator.reset().parameter("addressLine2").value(addressLine2)
-                        .matchesRegularExpression(regexFieldsMap.get("addressLine2"));
-            }
-        }
-        final String addressLine3 = this.fromApiJsonHelper.extractStringNamed("addressLine3", element);
-        if (enabledFieldsMap.get("addressLine3")) {
-            if (madatoryFieldsMap.get("addressLine3") && fromNewClient) {
-                baseDataValidator.reset().parameter("addressLine3").value(addressLine3).notBlank();
-            }
-            if (!regexFieldsMap.get("addressLine3").isEmpty()) {
-                baseDataValidator.reset().parameter("addressLine3").value(addressLine3)
-                        .matchesRegularExpression(regexFieldsMap.get("addressLine3"));
-            }
-        }
-        final String townVillage = this.fromApiJsonHelper.extractStringNamed("townVillage", element);
-        if (enabledFieldsMap.get("townVillage")) {
-            if (madatoryFieldsMap.get("townVillage") && fromNewClient) {
-                baseDataValidator.reset().parameter("townVillage").value(townVillage).notBlank();
-            }
-            if (!regexFieldsMap.get("townVillage").isEmpty()) {
-                baseDataValidator.reset().parameter("townVillage").value(townVillage)
-                        .matchesRegularExpression(regexFieldsMap.get("townVillage"));
-            }
-        }
-        final String city = this.fromApiJsonHelper.extractStringNamed("city", element);
-
-        if (enabledFieldsMap.get("city")) {
-            if (madatoryFieldsMap.get("city") && fromNewClient) {
-                baseDataValidator.reset().parameter("city").value(city).notBlank();
-            }
-            if (!regexFieldsMap.get("city").isEmpty()) {
-                baseDataValidator.reset().parameter("city").value(city).matchesRegularExpression(regexFieldsMap.get("city"));
-            }
-        }
-        final String countyDistrict = this.fromApiJsonHelper.extractStringNamed("countyDistrict", element);
-        if (enabledFieldsMap.get("countyDistrict")) {
-            if (madatoryFieldsMap.get("countyDistrict") && fromNewClient) {
-                baseDataValidator.reset().parameter("countyDistrict").value(countyDistrict).notBlank();
-            }
-            if (!regexFieldsMap.get("countyDistrict").isEmpty()) {
-                baseDataValidator.reset().parameter("countyDistrict").value(countyDistrict)
-                        .matchesRegularExpression(regexFieldsMap.get("countyDistrict"));
-            }
-        }
-
-        if (this.fromApiJsonHelper.extractStringNamed("stateProvinceId", element) != null) {
-            final String stateProvinceId = this.fromApiJsonHelper.extractStringNamed("stateProvinceId", element);
-            if (enabledFieldsMap.get("stateProvinceId")) {
-                if (madatoryFieldsMap.get("stateProvinceId") && fromNewClient) {
-                    baseDataValidator.reset().parameter("stateProvinceId").value(stateProvinceId).notBlank();
-                }
-                if (!regexFieldsMap.get("stateProvinceId").isEmpty()) {
-                    baseDataValidator.reset().parameter("stateProvinceId").value(stateProvinceId)
-                            .matchesRegularExpression(regexFieldsMap.get("stateProvinceId"));
+            if (fieldConfiguration.getField().equals("addressType") && fromNewClient) {
+                baseDataValidator.reset().parameter(field).value(fieldValue).notBlank();
+            } else {
+                if (fieldConfiguration.isIs_mandatory() && fromNewClient) {
+                    baseDataValidator.reset().parameter(field).value(fieldValue).notBlank();
                 }
             }
-        }
 
-        if (this.fromApiJsonHelper.extractStringNamed("countryId", element) != null) {
-            final String countryId = this.fromApiJsonHelper.extractStringNamed("countryId", element);
-            if (enabledFieldsMap.get("countryId")) {
-                if (madatoryFieldsMap.get("countryId") && fromNewClient) {
-                    baseDataValidator.reset().parameter("countryId").value(countryId).notBlank();
-                }
-                if (!regexFieldsMap.get("countryId").isEmpty()) {
-                    baseDataValidator.reset().parameter("countryId").value(countryId)
-                            .matchesRegularExpression(regexFieldsMap.get("countryId"));
-                }
+            if (!fieldConfiguration.getValidation_regex().isEmpty()) {
+                baseDataValidator.reset().parameter(field).value(fieldValue)
+                        .matchesRegularExpression(fieldConfiguration.getValidation_regex());
             }
-        }
-
-        final String postalCode = this.fromApiJsonHelper.extractStringNamed("postalCode", element);
-        if (enabledFieldsMap.get("postalCode")) {
-            if (madatoryFieldsMap.get("postalCode") && fromNewClient) {
-                baseDataValidator.reset().parameter("postalCode").value(postalCode).notBlank();
-            }
-            if (!regexFieldsMap.get("postalCode").isEmpty()) {
-                baseDataValidator.reset().parameter("postalCode").value(postalCode)
-                        .matchesRegularExpression(regexFieldsMap.get("postalCode"));
-            }
-        }
-
-        if (this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed("latitude", element) != null) {
-            final BigDecimal latitude = this.fromApiJsonHelper.extractBigDecimalWithLocaleNamed("latitude", element);
-            if (enabledFieldsMap.get("latitude")) {
-                if (madatoryFieldsMap.get("latitude") && fromNewClient) {
-                    baseDataValidator.reset().parameter("latitude").value(latitude).notBlank();
-                }
-                if (!regexFieldsMap.get("latitude").isEmpty()) {
-                    baseDataValidator.reset().parameter("latitude").value(latitude)
-                            .matchesRegularExpression(regexFieldsMap.get("latitude"));
-                }
-            }
-        }
+        });
         throwExceptionIfValidationWarningsExist(dataValidationErrors);
     }
 
