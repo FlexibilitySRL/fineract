@@ -116,7 +116,8 @@ public class AddressWritePlatformServiceImpl implements AddressWritePlatformServ
         final ClientAddress clientAddressobj = ClientAddress.fromJson(isActive, client, addobj, addressTypeIdObj);
         this.clientAddressRepository.save(clientAddressobj);
 
-        return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withEntityId(clientAddressobj.getId()).build();
+        return new CommandProcessingResultBuilder().withCommandId(command.commandId()).withEntityId(clientAddressobj.getId())
+                .withSubEntityId(clientAddressobj.getAddress().getId()).build();
     }
 
     // following method is used for adding multiple addresses while creating new
