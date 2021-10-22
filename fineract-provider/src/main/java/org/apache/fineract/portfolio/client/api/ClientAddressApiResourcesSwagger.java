@@ -58,6 +58,9 @@ final class ClientAddressApiResourcesSwagger {
 
         @Schema(example = "15")
         public Integer resourceId;
+
+        @Schema(example = "31")
+        public Integer subResourceId;
     }
 
     @Schema(description = "GetClientClientIdAddressesResponse")
